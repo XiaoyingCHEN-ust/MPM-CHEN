@@ -1,0 +1,183 @@
+{
+	"title": "Wave propagation",
+	"mesh": {
+		"mesh": "mesh.txt",
+		"isoparametric": false,
+		"entity_sets": "entity_sets.json",
+		"cell_type": "ED2Q4",
+    "cellsize_min": 0.02,
+		"io_type": "Ascii2D",
+		"node_type": "N2D2PHASE",
+        "particles_pore_pressures": {
+            "file": "initial_porepressure.txt"
+        },
+		"boundary_conditions": {
+			"velocity_constraints": [
+				{
+					"nset_id": 0,
+					"dir": 1,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 0,
+					"dir": 3,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 1,
+					"dir": 0,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 1,
+					"dir": 2,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 3,
+					"dir": 0,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 3,
+					"dir": 2,
+					"velocity": 0.00
+				}
+			],
+			"particles_at_free_surface": [
+				{
+					"pset_id": 0
+				}
+			],
+			"temperature_constraints": [
+				{
+					"nset_id": 2,
+					"temperature": 50
+				}
+			]
+		}
+	},
+	"particles": [
+		{
+			"generator": {
+				"check_duplicates": true,
+				"location": "particles.txt",
+				"io_type": "Ascii2D",
+				"particle_type": "P2D2PHASE",
+				"material_id": 0,
+				"liquid_material_id": 1,
+				"type": "file"
+			},
+			"set_id": 0
+		}
+	],
+	"materials": [
+		{
+			"id": 0,
+			"name": "soil",
+			"type": "LinearElastic2D",
+			"density": 2650.0,
+			"poisson_ratio": 0.0,
+			"youngs_modulus": 10E6,
+			"porosity": 0.4,
+			"k_x": 1E-3,
+			"k_y": 1E-3,
+      "theta": 0,
+			"thermal_expansivity": 1E-5,
+			"thermal_conductivity":2.4E6,
+			"specific_heat": 920,
+			"density_ratio":0.8
+		},
+		{
+			"id": 1,
+			"name": "water",
+			"type": "Newtonian2D",
+			"density": 1000.0,
+			"bulk_modulus": 2E9,
+			"liquid_compressibility": 0.5E-9,
+			"mu": 1,
+      "stab_para":0,
+			"liquid_thermal_expansivity": 7E-5,
+			"liquid_thermal_conductivity":0.6E6,
+			"liquid_specific_heat": 4186
+		}
+	],
+	"external_loading_conditions": {
+		"gravity": [0.0, 0.0],
+		"particle_surface_traction": [
+			{
+				"pset_id": 0,
+				"dir": 1,
+				"traction": -0E4,
+				"facet":2
+			}
+		]
+	},
+	"analysis": {
+		"//type": "ThermoMPMSemiImplicitTwoPhase2D",
+		"type": "ThermoMPMExplicitTwoPhase2D", 
+		"stress_update": "USF",
+		"PIC": 0,
+		"PIC_T": 0,
+		"semi_implicit": {
+			"free_surface_particle": "detect",
+			"beta": 1,
+			"implicit_drag_force": true,
+			"alpha": 0
+		},
+    "free_surface": {
+			"beta": 1,
+			"free_surface_particle": "assign",
+			"integration": "mp",
+			"penalty_factor": -1
+		},
+    "damping": {
+			"type": "Cundall",
+			"damping_factor": 0
+		},
+		"pressure_smoothing": true,
+		"uuid": "Case2_T50",
+		"gravity": [0.0, 0.0],
+		"dt": 1E-5,
+		"/nsteps": 2,
+		"nsteps": 1E6,
+		"matrix": {
+			"max_iter": 10000,
+			"tolerance": 1E-8,
+			"volume_tolerance": 0.25,
+			"assembler_type": "EigenSemiImplicitTwoPhase2D",
+			"solver_type": "EigenCG2D",
+			"num_threads": 4,
+			"entries_number":{
+				"K_matrix": 100,
+				"L_matrix": 100,
+				"F_matrix": 100,
+                "N_matrix": 100,
+				"T_matrix": 100,
+				"K_cor_matrix": 200
+			}
+		}
+	},
+	"post_processing": {
+		"path": "results/",
+		"write_hdf5":false,
+		"write_vtk":true,
+		"vtk": ["displacements",
+			      "velocities",
+			      "stresses",
+            "PIC_temperatures",
+            "temperatures", 
+            "temperature_gradients",
+            "PIC_temperatures",  
+            "temperature_accelerations",
+            "volumetric_strains",
+            "dvolumetric_strains",
+            "thermal_volumetric_strains",
+            "dthermal_volumetric_strains"],
+		"liquid_vtk": ["pore_pressures",
+                  "liquid_velocities",
+                  "liquid_volumetric_strains",
+                  "liquid_dvolumetric_strains"],
+		"output_steps": 100
+	}
+}

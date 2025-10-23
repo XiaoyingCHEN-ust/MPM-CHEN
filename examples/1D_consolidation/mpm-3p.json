@@ -1,0 +1,243 @@
+{
+	"title": "Wave propagation",
+	"mesh": {
+		"mesh": "mesh.txt",
+		"isoparametric": false,
+		"entity_sets": "entity_sets.json",
+		"cell_type": "ED2Q4",
+        "cellsize_min": 0.02,
+		"io_type": "Ascii2D",
+		"node_type": "N2D3PHASE&NEW",
+		"//particles_temperatures":"initial_temperature.txt",
+        "//particles_pore_pressures": {
+            "file": "initial_porepressure.txt"
+        },
+		"boundary_conditions": {
+			"velocity_constraints": [		
+				{
+					"nset_id": 0,
+					"dir": 0,
+					"velocity": 0.00
+				},	       
+				{
+					"nset_id": 0,
+					"dir": 1,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 0,
+					"dir": 2,
+					"velocity": 0.00
+				},	       
+				{
+					"nset_id": 0,
+					"dir": 3,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 0,
+					"dir": 4,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 0,
+					"dir": 5,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 1,
+					"dir": 0,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 1,
+					"dir": 2,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 1,
+					"dir": 4,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 3,
+					"dir": 0,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 3,
+					"dir": 2,
+					"velocity": 0.00
+				},
+				{
+					"nset_id": 3,
+					"dir": 4,
+					"velocity": 0.00
+				}
+			],
+			"particles_at_free_surface": [
+				{
+					"pset_id": 1
+				}
+			],
+			"temperature_constraints": [
+				{
+					"nset_id": 2,
+					"temperature":0.00
+				}
+			]
+		}
+	},
+	"particles": [
+		{
+			"generator": {
+				"check_duplicates": true,
+				"location": "particles.txt",
+				"io_type": "Ascii2D",
+				"particle_type": "P2D3PHASE&NEW",
+				"material_id": 0,
+				"liquid_material_id": 1,
+				"type": "file"
+			},
+			"set_id": 0
+		}
+	],
+	"materials": [
+		{
+			"id": 0,
+			"name": "soil",
+			"type": "LinearElastic2D",
+			"density": 2500.0,
+			"poisson_ratio": 0.4,
+			"youngs_modulus": 10E6,
+			"porosity": 0.3,
+			"intrinsic_permeability":5E-11,
+            "theta": 0,
+			"thermal_expansivity": 1E-5,
+			"thermal_conductivity":1E5,
+			"specific_heat": 880,
+			"density_ratio":0.8,
+	        "p_ref":100000
+		},
+		{
+			"id": 1,
+			"name": "water",
+			"type": "Newtonian2D",
+			"density": 1000.0,
+			"liquid_saturation":0.7,
+			"bulk_modulus": 1E9,
+			"mu": 1e-3,
+			"liquid_viscosity":1e-3,
+            "stab_para":0,
+			"liquid_thermal_conductivity":1E5,
+			"liquid_specific_heat": 4190,
+			"liquid_expansivity": 7E-5,
+			"liquid_compressibility": 1E-9,
+            "liquid_molar_mass":0.018,
+			"liquid_saturation_res":0.0,
+			"constant_mw":2.0,
+			"//conditional setting: suction + (1 - ini_liquid_saturation_) * 1E6 = 500 kPa":0,
+			"suction":200000,
+	  "two_phase":false,
+      "name_3": "gas",
+      "gas_thermal_conductivity": 100E3,
+      "gas_specific_heat": 2100,
+	  "gas_constant": 8.314,
+      "gas_molar_mass": 0.029,
+	  "gas_saturation_res":0.0,
+      "gas_saturation": 0.3,
+      "gas_viscosity": 1E-5,
+	  "constant_mg":3.0,
+	  "para_p0":1E4,
+	  "para_m":0.3
+		}
+	],
+	"external_loading_conditions": {
+		"gravity": [0.0, 0.0],
+		"particle_surface_traction": [
+			{
+				"pset_id": 0,
+				"dir": 1,
+				"traction": -0E4,
+				"facet":2
+			}
+		]
+	},
+	"analysis": {
+		"//type": "ThermoMPMSemiImplicitTwoPhase2D",
+		"type": "ThermoMPMExplicitThreePhaseNew2D", 
+		"stress_update": "USF",
+		"PIC": 0,
+		"PIC_T": 0,
+    	"free_surface": {	
+			"free_surface_particle": "assign",
+			"volume_tolerance": 0.25
+		},
+		"damping": {
+			"type": "Cundall",
+			"damping_factor": 0
+		},
+		"pressure_smoothing": false,
+		"uuid": "3phase-Sh=0.7-pc=200E3-pg=variable-kr",
+		"/gravity": [0.0, 0.0],
+		"dt": 1E-4,
+		"nsteps": 1E6,
+		"/dt_matrix" : [1E-6, 1E-5, 1E-4],
+		"/nsteps_matrix" : [1E3, 2E3, 1E6]
+	},
+	"post_processing": {
+		"path": "results/",
+		"write_hdf5":false,
+		"write_vtk":true,
+		"vtk": [
+			"temperature_gradients",
+			"PIC_temperatures",
+			"temperatures",
+			"porosities",
+			"displacements",
+			"velocities",
+			"strains",
+			"stresses"
+		],
+		"liquid_vtk": [
+			"liquid_critical_times",
+			"gas_critical_times",
+			"pore_pressures",        
+			"suction_pressures",     
+			"liquid_pressures",
+			"PIC_liquid_pressures",      
+			"liquid_saturations",    
+			"liquid_fractions",      
+			"liquid_chis",           
+			"liquid_densities",      
+			"liquid_sources",        
+			"liquid_permeabilities",  
+			"liquid_volumes",        
+			"liquid_masses",         
+			"liquid_volumetric_strains",    
+			"liquid_viscosities",
+			"liquid_pressure_gradients",    
+			"gas_pressures",
+			"PIC_gas_pressures",         
+			"gas_saturations",       
+			"gas_densities",         
+			"gas_sources",           
+			"gas_permeabilities",     
+			"gas_volumes",           
+			"gas_masses",            
+			"gas_mass_densities",    
+			"gas_vol_strains",       
+			"gas_viscosities",       
+			"liquid_velocities",
+			"liquid_accelerations",
+			"liquid_strains",      
+			"gas_velocities",
+			"gas_accelerations",   
+			"gas_strains",      
+			"gas_pressure_gradients"
+		],
+		"log_output_steps":true,
+		"/output_steps": 1,
+		"output_steps": 1000
+	}
+}
